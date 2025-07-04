@@ -26,6 +26,7 @@ if user_input:
             # Debug: Show what type of output we got
             st.write(f"🔍 Debug: Output type is {type(output)}")
             st.write(f"🔍 Debug: Figure available: {figure is not None}")
+            st.write(f"🔍 Debug: Output length: {len(str(output)) if output else 0} characters")
 
             # Display the output
             with st.chat_message("assistant"):
@@ -34,8 +35,12 @@ if user_input:
                     st.write("✅ Displaying generated visualization")
                     st.pyplot(figure)
                     plt.close(figure)  # Close the figure to prevent memory leaks
-                    # Store the figure in history
-                    st.session_state.history.append((user_input, figure))
+                    # Also show text response if available
+                    if output and isinstance(output, str) and len(output) > 50:
+                        st.markdown("### 📝 Analysis:")
+                        st.markdown(output)
+                    # Store both in history
+                    st.session_state.history.append((user_input, (figure, output)))
                 elif isinstance(output, plt.Figure):
                     st.write("✅ Displaying matplotlib figure from output")
                     st.pyplot(output)
@@ -46,8 +51,9 @@ if user_input:
                     st.image(output, caption="📈 Generated Visualization")
                     st.session_state.history.append((user_input, output))
                 else:
-                    st.write("📝 Text response:")
-                    st.write(output)
+                    st.markdown("### 📝 Analysis:")
+                    # Use markdown for better formatting
+                    st.markdown(output)
                     st.session_state.history.append((user_input, output))
 
         except Exception as e:
@@ -59,13 +65,20 @@ if user_input:
 with st.expander("📜 Chat History"):
     for i, (q, a) in enumerate(st.session_state.history):
         st.markdown(f"**{i+1}. Q:** {q}")
-        if isinstance(a, plt.Figure):
+        if isinstance(a, tuple):  # Handle (figure, text) tuple
+            fig, text = a
+            if fig:
+                st.pyplot(fig)
+                plt.close(fig)
+            if text:
+                st.markdown(text)
+        elif isinstance(a, plt.Figure):
             st.pyplot(a)
             plt.close(a)  # Close the figure to prevent memory leaks
         elif isinstance(a, Image.Image):
             st.image(a)
         else:
-            st.text(a)
+            st.markdown(str(a))
 
 st.markdown("---")
 st.caption("Built with LangChain, Claude, and Streamlit")

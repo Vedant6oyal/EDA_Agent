@@ -17,9 +17,10 @@ client = Anthropic(api_key=api_key)
 
 # Global variable to store the last generated figure
 _last_figure = None
+_last_query = ""
 
 def generate_and_run_code(query, df):
-    global _last_figure
+    global _last_figure, _last_query
     code = ""  # ensure code is defined even if prompt fails
 
     prompt = f"""
@@ -68,6 +69,14 @@ Write Python code (only code, no explanation) that:
         
         # Store the figure globally so we can access it later
         _last_figure = fig
+        _last_query = query
+        
+        # Set context for insight tool
+        try:
+            from tools.insight_tool import set_chart_summary
+            set_chart_summary(f"Created visualization for query: '{query}'. The chart shows data analysis results.")
+        except ImportError:
+            pass  # insight_tool might not be available
         
         # Return a success message that indicates a figure was created
         return f"✅ Successfully generated visualization with dimensions {fig.get_size_inches()[0]*fig.dpi:.0f}x{fig.get_size_inches()[1]*fig.dpi:.0f}"
@@ -79,6 +88,11 @@ def get_last_figure():
     """Get the last generated figure"""
     global _last_figure
     return _last_figure
+
+def get_last_query():
+    """Get the last visualization query"""
+    global _last_query
+    return _last_query
 
 # Define the LangChain Tool
 dynamic_python_tool = Tool.from_function(
