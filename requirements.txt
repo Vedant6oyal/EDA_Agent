@@ -1,0 +1,13 @@
+langchain>=0.0.267
+openai>=1.0.0
+python-dotenv>=1.0.0
+duckdb>=0.8.1
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+faiss-cpu>=1.7.4
+tiktoken>=0.4.0
+langchain-community>=0.0.267
+langchain>=0.1.0
+anthropic>=0.3.0
